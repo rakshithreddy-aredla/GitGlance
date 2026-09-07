@@ -169,15 +169,23 @@ def score_community(user: dict) -> tuple[int, list]:
     """10 pts. Following pattern sanity + a nudge toward collaboration."""
     pts, notes = 0, []
     followers, following = user.get("followers", 0), user.get("following", 0)
-    ratio = followers / max(following, 1)
-    if ratio >= 1:
-        pts += 4
-        notes.append("follower/following ratio healthy (>= 1)")
+    if following == 0:
+        # neutral state: follows nobody - neither spammy nor established
+        pts += 4 if followers >= 10 else 2
+        notes.append("follows no one - neutral follow pattern")
     else:
-        notes.append("following many more than followers - looks spammy")
+        ratio = followers / max(following, 1)
+        if ratio >= 1:
+            pts += 4
+            notes.append("follower/following ratio healthy (>= 1)")
+        else:
+            notes.append("following many more than followers - looks spammy")
     if followers >= 20:
         pts += 4
         notes.append(f"{followers} followers")
+    elif followers >= 5:
+        pts += 2
+        notes.append(f"{followers} followers - growing")
     if user.get("blog") or user.get("twitter_username"):
         pts += 2
         notes.append("personal site/social link present")

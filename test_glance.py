@@ -74,6 +74,15 @@ class TestCommunity(unittest.TestCase):
         pts, _ = glance.score_community(user)
         self.assertEqual(pts, 10)
 
+    def test_zero_follows_is_neutral_not_spammy(self):
+        # regression: fresh account (0 followers, 0 following) was flagged
+        # "looks spammy" even though following no one is a neutral state
+        user = {"followers": 0, "following": 0, "blog": None, "twitter_username": None}
+        pts, notes = glance.score_community(user)
+        self.assertFalse(any("spammy" in n for n in notes))
+        self.assertTrue(any("neutral" in n for n in notes))
+        self.assertEqual(pts, 2)
+
     def test_spammy_follow_pattern(self):
         user = {"followers": 2, "following": 500, "blog": None, "twitter_username": None}
         pts, notes = glance.score_community(user)
